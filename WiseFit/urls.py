@@ -1,33 +1,21 @@
-"""
-URL configuration for WiseFit project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('main.urls')),
-    path('wardrobe/', include('wardrobe.urls')),
-    path('api/wardrobe/', include('wardrobe.api_urls')),
-    path('worth-to-buy/', include('worth_to_buy_analyzer.urls')),
-    path('api/worth-to-buy/', include('worth_to_buy_analyzer.api_urls')),
-    path('carbon/', include('carbon_footprint.urls')),
+    path("admin/", admin.site.urls),
+
+    # Autentikasi JSON untuk aplikasi mobile dikelola oleh aplikasi main.
+    path("api/auth/", include("main.api_auth_urls")),
+
+    path("", include("main.urls")),
+    path("wardrobe/", include("wardrobe.urls")),
+    path("api/wardrobe/", include("wardrobe.api_urls")),
+    path("worth-to-buy/", include("worth_to_buy_analyzer.urls")),
+    path("api/worth-to-buy/", include("worth_to_buy_analyzer.api_urls")),
+    path("carbon/", include("carbon_footprint.urls")),
     path("api/carbon/", include("carbon_footprint.api_urls")),
-    path('lifecycle/', include('lifecycle.urls')),
-    path('api/lifecycle/', include('lifecycle.api_urls')),
-    path('dashboard/', include('dashboard.urls')),
-    path('api/dashboard/', include('dashboard.api_urls')),
+    path("lifecycle/", include("lifecycle.urls")),
+    path("api/lifecycle/", include("lifecycle.api_urls")),
+    path("dashboard/", include("dashboard.urls")),
+    path("api/dashboard/", include("dashboard.api_urls")),
 ]
