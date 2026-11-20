@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 PRODUCTION = os.getenv("PRODUCTION", "False").strip().lower() == "true"
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "").strip()
+SECRET_KEY = os.getenv("SECRET_KEY", "labytaby123").strip()
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY belum diatur di environment variables")
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'lifecycle',       # Modul 4
     'dashboard',       # Modul 5
     'seed_data',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
