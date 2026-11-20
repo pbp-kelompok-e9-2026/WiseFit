@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
+    path('api/worth-to-buy/', include('worth_to_buy_analyzer.api_urls')),
     path('admin/', admin.site.urls),
     path('', include('main.urls')),
     path('wardrobe/', include('wardrobe.urls')),
