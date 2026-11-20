@@ -26,6 +26,8 @@ DEBUG = False if PRODUCTION else (
 )
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "zidan-fauzan-wearwise.pws.cs.ui.ac.id"]
+if DEBUG:
+    ALLOWED_HOSTS.append("10.0.2.2")  # Android emulator -> local Django server.
 CSRF_TRUSTED_ORIGINS = ["https://zidan-fauzan-wearwise.pws.cs.ui.ac.id"]
 
 # Application definition
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
     'dashboard',       # Modul 5
     'seed_data',
     'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
