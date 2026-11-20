@@ -58,7 +58,7 @@
         return cookieValue;
     }
 
-    async function fetchWardrobe(category = '') {
+    async function fetchWardrobe(category = '', search='') {
         const grid = document.getElementById('wardrobe-grid');
         const loading = document.getElementById('loading');
         const empty = document.getElementById('empty');
@@ -67,10 +67,15 @@
         empty.style.display = 'none';
 
         try {
-            const url = category ? `${GET_JSON_URL}?category=${category}` : GET_JSON_URL;
+            const params = new URLSearchParams();
+            if(category) params.append('category', category);
+            if(search) params.append('q', search);
+
+            const queryString = params.toString();
+            const url = queryString ? `${GET_JSON_URL}?${queryString}` : GET_JSON_URL;
+            
             const res = await fetch(url);
             const items = await res.json();
-
             loading.style.display = 'none';
             grid.innerHTML = '';
 
@@ -108,6 +113,8 @@
             <div class="ww-card-price" id="cpw-${id}">Rp ${Number(p.price).toLocaleString('id-ID')} / wear</div>
             <div class="ww-card-actions">
                 <button onclick="incrementWear('${id}')" class="ww-btn-sm">+ Pakai Hari Ini</button>
+                <button onclick="decrementWear('${id}')" class="ww-btn-sm">+ Pakai Hari Ini</button>
+
                 <button onclick="deleteItem('${id}')" class="ww-btn-sm ww-btn-danger">Hapus</button>
             </div>
         `;
@@ -123,6 +130,16 @@
             fetchWardrobe(document.getElementById('category-filter').value);
         }
     }
+     async function decrementWear(id) {
+        const res = await fetch(`/wardrobe/decrement-wear/${id}/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        });
+        if (res.ok) {
+            fetchWardrobe(document.getElementById('category-filter').value);
+        }
+    }
+
 
     async function deleteItem(id) {
         if (!confirm('Hapus pakaian ini dari koleksi wardrobe?')) return;
@@ -135,9 +152,8 @@
         }
     }
 
-    document.getElementById('category-filter').addEventListener('change', (e) => {
-        fetchWardrobe(e.target.value);
-    });
+    document.getElementById('category-filter').addEventListener('change', fetchWardrobe());
+    document.getElementById('search-input').addEventListener('input', fetchWardrobe());
 
     document.getElementById('add-wardrobe-form').addEventListener('submit', async function(e) {
         e.preventDefault();
