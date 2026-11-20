@@ -21,12 +21,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),
     path('wardrobe/', include('wardrobe.urls')),
-    path('worth-to-buy/', include('worth_to_buy_analyzer.urls')),  # Modul 2
-    path('carbon/', include('carbon_footprint.urls')),           # Modul 3
-    path('lifecycle/', include('lifecycle.urls')),               # Modul 4
-    path('dashboard/', include('dashboard.urls')),              # Modul 5
-
-    # API URLs
-    path('api/v1/lifecycle/', include('lifecycle.api_urls')),   # Modul 4 API (DRF)
-    path('api/v1/dashboard/', include('dashboard.api_urls')),
+    path('api/wardrobe/', include('wardrobe.api_urls')),
+    path('worth-to-buy/', include('worth_to_buy_analyzer.urls')),
+    path('api/worth-to-buy/', include('worth_to_buy_analyzer.api_urls')),
+    path('carbon/', include('carbon_footprint.urls')),
+    path("api/carbon/", include("carbon_footprint.api_urls")),
+    path('lifecycle/', include('lifecycle.urls')),
+    path('api/lifecycle/', include('lifecycle.api_urls')),
+    path('dashboard/', include('dashboard.urls')),
+    path('api/dashboard/', include('dashboard.api_urls')),
 ]
