@@ -27,5 +27,6 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),              # Modul 5
 
     # API URLs
+    path('api/v1/lifecycle/', include('lifecycle.api_urls')),   # Modul 4 API (DRF)
     path('api/v1/dashboard/', include('dashboard.api_urls')),
 ]
