@@ -206,6 +206,21 @@ class EditProfileTest(DashboardBaseTest):
         })
         self.assertRedirects(response, reverse('dashboard:show_profile'))
 
+    # def test_edit_same_profile_detail(self):
+    #     """detail yg sama tidak akan mengubah yang udah ada"""
+    #     User.objects.create_user(
+    #          username='aliice', email='alice@example.com', password='x'
+    #     )
+    #     response = self.client.post(reverse('dashboard:edit_profile'),
+    #     {
+    #         'first_name': 'Alice',
+    #         'last_name': 'Wonder',
+    #         'email': 'alice@example.com',
+    #         'phone': '1234567',
+    #         'address': 'Jl. Merdeka',
+    #     })
+    #     self.assertRedirects(response, reverse('dashboard:show_profile'))
+
 # TEST: DELETE ACCOUNT
 
 class DeleteAccountTest(DashboardBaseTest):
