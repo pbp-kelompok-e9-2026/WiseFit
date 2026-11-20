@@ -2,13 +2,15 @@ from decimal import Decimal
 
 from django.conf import settings
 from rest_framework import generics, status
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from . import services
 from .analysis import SOURCE_CHOICES, build_analysis, clean_filters
-from .permissions import ApiSessionAuthentication, IsAnalyzerOrSuperuser, IsRegularUser
+from .permissions import IsAnalyzerOrSuperuser, IsRegularUser
 from .constants import CATEGORY_CHOICES, MATERIAL_CHOICES, PRICE_CURRENCY_LABEL
 from .forms import reset_factors
 from .models import CarbonEstimate
@@ -24,26 +26,29 @@ from .views import SORT_CHOICES, _filtered_rows, build_stats
 
 class UserApiMixin:
     """Halaman pribadi user: user biasa dan superuser. Akun Analyzer ditolak."""
-    authentication_classes = [ApiSessionAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsRegularUser]
 
 
 class AnalyzerApiMixin:
     """Ruang Analyzer: akun grup Analyzer atau superuser."""
-    authentication_classes = [ApiSessionAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAnalyzerOrSuperuser]
 
 
 class OptionsView(APIView):
     """Pilihan dropdown dan berat default per kategori, supaya Flutter tidak menyalin konstanta."""
-    authentication_classes = [ApiSessionAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         weights = services.current_category_weights()
         return Response({
             "materials": [{"value": v, "label": l} for v, l in MATERIAL_CHOICES],
-            "categories": [{"value": v, "label": l, "default_weight_kg": weights.get(v)} for v, l in CATEGORY_CHOICES],
+            "categories": [
+                {"value": v, "label": l, "default_weight_kg": weights.get(v)}
+                for v, l in CATEGORY_CHOICES
+            ],
             "sorts": [{"value": v, "label": l} for v, l in SORT_CHOICES],
             "sources": [{"value": v, "label": l} for v, l in SOURCE_CHOICES],
             "currency": PRICE_CURRENCY_LABEL,
@@ -71,21 +76,34 @@ class NumbersView(UserApiMixin, APIView):
         return Response({
             "item": CarbonEstimateSerializer(item).data if item else None,
             "stats": stats,
-            "items": [{"id": e["pk"], "name": e["name"]} for e in estimates.values("pk", "name")],
+            "items": [
+                {"id": e["pk"], "name": e["name"]}
+                for e in estimates.values("pk", "name")
+            ],
             "currency": PRICE_CURRENCY_LABEL,
         })
 
 
+class EstimatePagination(LimitOffsetPagination):
+    default_limit = 20
+    max_limit = 100
+
+
 class EstimateListCreateView(UserApiMixin, APIView):
-    """GET: daftar dengan ?q=, ?material=, ?sort=. POST: tambah estimasi."""
+    """GET: daftar dengan ?q=, ?material=, ?sort=, ?limit=, ?offset=.
+    POST: tambah estimasi.
+    """
 
     def get(self, request):
         data = _filtered_rows(request, request.query_params)
-        return Response({
-            "results": EstimateRowSerializer(data["estimates"], many=True).data,
-            "filters": data["filters"],
-            "filtered": data["filtered"],
-        })
+
+        paginator = EstimatePagination()
+        page = paginator.paginate_queryset(data["estimates"], request, view=self)
+        serializer = EstimateRowSerializer(page, many=True)
+        response = paginator.get_paginated_response(serializer.data)
+        response.data["filters"] = data["filters"]
+        response.data["filtered"] = data["filtered"]
+        return response
 
     def post(self, request):
         serializer = CarbonEstimateSerializer(data=request.data)
@@ -108,18 +126,22 @@ class EstimatePreviewView(UserApiMixin, APIView):
     def post(self, request):
         serializer = PreviewInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        d = serializer.validated_data
-        weight = d.get("weight_kg") or Decimal(str(services.category_weight(d["category"])))
-        price = d.get("price")
-        wears = d["estimated_wears"]
-        co2e, _source = services.compute_co2e(d["material"], weight, None)
+        data = serializer.validated_data
+        weight = data.get("weight_kg") or Decimal(
+            str(services.category_weight(data["category"]))
+        )
+        price = data.get("price")
+        wears = data["estimated_wears"]
+        co2e, _source = services.compute_co2e(data["material"], weight, None)
         return Response({
             "co2e": float(co2e),
             "weight": float(weight),
             "wears": wears,
             "cost_per_wear": float(price) / wears if price else None,
             "score": services.sustainability_score(co2e, wears),
-            "will_use_climatiq": bool(price) and bool(getattr(settings, "CLIMATIQ_API_KEY", "")),
+            "will_use_climatiq": bool(price) and bool(
+                getattr(settings, "CLIMATIQ_API_KEY", "")
+            ),
             "currency": PRICE_CURRENCY_LABEL,
         })
 
@@ -149,10 +171,17 @@ class FactorsView(AnalyzerApiMixin, APIView):
         message = "Faktor berhasil disimpan."
         if serializer.validated_data["recalculate"]:
             message += f" {updated} estimasi offline dihitung ulang."
-        return Response({**build_factors_payload(), "recalculated": updated, "message": message})
+        return Response({
+            **build_factors_payload(),
+            "recalculated": updated,
+            "message": message,
+        })
 
 
 class FactorsResetView(AnalyzerApiMixin, APIView):
     def post(self, request):
         reset_factors()
-        return Response({**build_factors_payload(), "message": "Faktor dikembalikan ke nilai bawaan."})
+        return Response({
+            **build_factors_payload(),
+            "message": "Faktor dikembalikan ke nilai bawaan.",
+        })
