@@ -115,19 +115,11 @@ CPW  = Harga Beli / Jumlah Pemakaian
 #### URL
 | Path | Nama | Fungsi |
 |---|---|---|
-|/wardrobe/|	wardrobe:index	
-Halaman utama| digital wardrobe|
-
-|/wardrobe/json/|	wardrobe:get_clothing_json	|
-Ambil data pakaian JSON (dukungan filter ?category=) |
-
-|/wardrobe/add-ajax/|	wardrobe:add_clothing_ajax|	
-Tambah pakaian baru via AJAX|
-
-|/wardrobe/increment-wear/<id>/|	wardrobe:increment_wear	|
-Tambah frekuensi pemakaian (+1) via AJAX|
-
-|/wardrobe/delete-ajax/<id>/	|wardrobe:delete_clothing_ajax|	
+|/wardrobe/|	wardrobe:index | Halaman utama digital wardrobe|
+|/wardrobe/json/|	wardrobe:get_clothing_json | Ambil data pakaian JSON (dukungan filter ?category=) |
+|/wardrobe/add-ajax/|wardrobe:add_clothing_ajax|Tambah pakaian baru via AJAX|
+|/wardrobe/increment-wear/<id>/|wardrobe:increment_wear|Tambah frekuensi pemakaian (+1) via AJAX|
+|/wardrobe/delete-ajax/<id>/|wardrobe:delete_clothing_ajax|	
 Hapus item pakaian via AJAX|
 
 #### Konfigurasi

@@ -7,6 +7,8 @@ from django.views.decorators.http import require_POST
 from django.core import serializers
 from .models import ClothingItem
 from .forms import ClothingItemForm
+from .serializers import ClothingItemSerializer
+
 
 # Create your views here.
 
@@ -46,11 +48,18 @@ def get_wardrobe_json(request):
 @require_POST
 def add_clothing_ajax(request):
     form = ClothingItemForm(request.POST)
+    items = ClothingItem.objects.filter(user=request.user)
     if form.is_valid():
         item = form.save(commit=False)
         item.user = request.user
-        item.save()
-        return JsonResponse({"message": "Pakaian berhasil ditambahkan!", "pk": str(item.id)}, status=201)
+        q = request.GET.get('name','').strip()
+
+        if q not in items.name:
+            item.save()
+            return JsonResponse({"message": "Pakaian berhasil ditambahkan!", "pk": str(item.id)}, status=201)
+
+        
+        return JsonResponse({"errors":form.errors.get_json_data()}, status=400)
     return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 @login_required
@@ -64,6 +73,25 @@ def increment_wear_ajax(request, item_id):
         "new_wear_count": item.wear_count,
         "new_cpw": item.calculate_cost_per_wear(),
     })
+
+@login_required
+@require_POST
+def decrement_wear_ajax(request, item_id):
+    item = get_object_or_404(ClothingItem, id=item_id, user=request.user)
+    if item.wear_count <=0:
+        return JsonResponse({
+            "message": "Jumlah pemakaian tetap dan tidak bisa minus!",
+            "new_wear_count": item.wear_count,
+            "new_cpw": item.calculate_cost_per_wear(),
+        })
+    else:
+        item.wear_count -= 1
+        item.save()
+        return JsonResponse({
+            "message": "Jumlah pemakaian diperbarui!",
+            "new_wear_count": item.wear_count,
+            "new_cpw": item.calculate_cost_per_wear(),
+        })
 
 @login_required
 @require_POST

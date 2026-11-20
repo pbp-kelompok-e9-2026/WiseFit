@@ -28,6 +28,31 @@ class ClothingItemModelTest(TestCase):
         self.assertEqual(str(self.item), "Kaos Polos (alijundi)")
 
 class ClothingItemFormTest(TestCase):
+    def test_duplicate_item(self):
+        data = {
+            'name': 'Celana Chino',
+            'category': 'BOTTOM',
+            'material': 'Twill',
+            'price': 25000,
+            'purchase_date': '2026-02-01',
+            'image_url': 'https://example.com/chino.jpg'
+        }
+        form = ClothingItemForm(data=data)
+        self.assertTrue(form.is_valid())
+        data2 = {
+            'name': 'Celana Chino',
+            'category': 'BOTTOM',
+            'material': 'Twill',
+            'price': 25000,
+            'purchase_date': '2026-02-01',
+            'image_url': 'https://example.com/chino.jpg'
+        }
+        form = ClothingItemForm(data=data2)
+        self.assertFalse(form.is_valid())
+
+
+
+
     def test_valid_form(self):
         data = {
             'name': 'Celana Chino',
